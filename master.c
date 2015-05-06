@@ -63,11 +63,11 @@ void main_loop(){
 	char *line;
 	char** pline;
 	
-	
-	
-	line = malloc(line_len*sizeof(char));
+	line = calloc(line_len,sizeof(char));
 	*line = (char) NULL;
-	pline = malloc(max_words * sizeof(char*));
+	pline = calloc(max_words, sizeof(char*));
+	
+	char* home;
 	
 	//read line of input, do stuff!
 	while (fgets(line, line_len, stdin) != NULL){
@@ -75,13 +75,36 @@ void main_loop(){
 		//parse the input line into an array
 		parse(line, pline);
 		
+		//implement built in commands
+		if (strcmp("exit", *pline)==0){
+			printf("Exiting.");
+			break;
+		} else if (strcmp("myinfo", *pline)==0){
+			printf("My PID is %d and my PPID is %d\n", getpid(), getppid());
+		} else if (strcmp("cd", *pline) == 0){
+			if ( *(pline+1) == NULL){
+				//change working directory to $HOME if there are no other args
+				home = getenv("HOME");
+				chdir(home);
+			} else {
+				//change working directory to specified directory if there is another arg
+				home = getenv("PWD");
+				strcat(home, "/");
+				strcat(home, *(pline+1));
+				chdir(home);
+			}
+		} else {
+			//execute simple system commands
+			executor(pline);
+		}
 		
-		executor(pline);
+		
 		
 	}
 	
 	//Things to free: line, pline (char**), 
 	free(line);
+	free(home);
 }
 
 /*@brief main function
