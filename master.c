@@ -7,6 +7,7 @@ Lab09
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include "master.h"
 
@@ -14,26 +15,55 @@ Lab09
 *@param line is the input line
 *@return an array of strings that is the parsed line
 */
-char **parse(char* line){
+void parse(char *line, char** pline){
+	size_t linecap;
 	
+	char *token;
+	token = malloc(LINE_LEN*sizeof(int));
+		
+	token = strtok(line, DELIMS);
+	int ind = 0;
+	
+	while(token != NULL){
+		pline[ind] = strdup(token);
+		token = strtok(NULL, DELIMS);
+		ind++;
+	}
+	pline[ind] = NULL;
+	free(token);
 }
 
 /*@brief main loop
 */
 void main_loop(){
 
-	int size = LINE_LEN;
-	char *line = malloc(size*sizeof(char));
+	int line_len = LINE_LEN;
+	int max_words = MAX_WORDS;
+	char *line;
+	line = malloc(line_len*sizeof(char));
+	*line = (char) NULL;
 	char** pline;
+	pline = malloc(max_words * sizeof(char*));
 	//read line of input, do stuff!
-	while (fgets(line, size, stdin) != NULL){
+	while (fgets(line, line_len, stdin) != NULL){
 		
-		//parse the input line
-		pline = parse(line);
+		//parse the input line into an array
+		parse(line, pline);
+		
+		
+		//printf("%s", line);
+		int ind = 0;
+		char** temp = pline;
+		
+		while(*temp){
+			printf("%s\n", temp[ind]);
+			temp++;
+		}
+		
 		
 	}
 	
-	//free line, parsed (char**), 
+	//Things to free: line, pline (char**), 
 	free(line);
 }
 

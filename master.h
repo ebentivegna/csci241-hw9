@@ -12,8 +12,10 @@ Lab09
 #define LINE_LEN 1024
 #define MAX_WORDS 100
 #define COMMAND_SEGS 10
+#define DELIMS " \t\r\n"
 
 //functions
 void main_loop();
+void parse(char *line,char** pline);
 
 #endif //MAIN_H
