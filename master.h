@@ -15,7 +15,11 @@ Lab09
 #define DELIMS " \t\r\n"
 
 //functions
+//runs the main loop
 void main_loop();
+//parses input into array
 void parse(char *line,char** pline);
+//run simple child processes
+int executor(char** line);
 
 #endif //MAIN_H

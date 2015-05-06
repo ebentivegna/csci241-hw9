@@ -9,6 +9,8 @@ Lab09
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "master.h"
 
 /*@brief parses input line
@@ -16,7 +18,6 @@ Lab09
 *@return an array of strings that is the parsed line
 */
 void parse(char *line, char** pline){
-	size_t linecap;
 	
 	char *token;
 	token = malloc(LINE_LEN*sizeof(int));
@@ -33,17 +34,41 @@ void parse(char *line, char** pline){
 	free(token);
 }
 
+int executor(char** line){
+	pid_t pid, wpid;
+	int child;
+	
+	pid = fork();
+	
+	if (pid == 0){
+		//child process!
+		if (execvp(line[0], line) == -1){
+			perror("Problem with child process.");
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		//parent process!
+		do {
+			wpid = waitpid(pid, &child, WUNTRACED);
+		} while (!WIFEXITED(child) && !WIFSIGNALED(child));
+	}
+	return 1;
+}
+
 /*@brief main loop
 */
 void main_loop(){
-
 	int line_len = LINE_LEN;
 	int max_words = MAX_WORDS;
 	char *line;
+	char** pline;
+	
+	
+	
 	line = malloc(line_len*sizeof(char));
 	*line = (char) NULL;
-	char** pline;
 	pline = malloc(max_words * sizeof(char*));
+	
 	//read line of input, do stuff!
 	while (fgets(line, line_len, stdin) != NULL){
 		
@@ -51,15 +76,7 @@ void main_loop(){
 		parse(line, pline);
 		
 		
-		//printf("%s", line);
-		int ind = 0;
-		char** temp = pline;
-		
-		while(*temp){
-			printf("%s\n", temp[ind]);
-			temp++;
-		}
-		
+		executor(pline);
 		
 	}
 	
