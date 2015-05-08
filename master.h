@@ -14,6 +14,9 @@ Lab09
 #define COMMAND_SEGS 10
 #define DELIMS " \t\n"
 
+//vars used to send signals
+pid_t pid;
+
 //functions
 //runs the main loop
 void main_loop();

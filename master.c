@@ -13,6 +13,10 @@ Lab09
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "master.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <semaphore.h>
+#include <fcntl.h>
 
 /*@brief parses input line
 *@param line is the input line
@@ -40,8 +44,38 @@ void parse(char *line, char** pline){
 *@return 1 on success, 0 on failure
 */
 int executor(char** pline){
-	pid_t pid, wpid;
+	pid_t wpid;
 	int child;
+	int io[2];
+	io[0] = STDIN_FILENO;
+	io[1] = STDOUT_FILENO;
+	
+
+	
+	//this is also where we handle input/output redirection!
+	char** temp = pline;
+	while (NULL != *temp){
+		if (strcmp("<", *temp) == 0){
+			
+			if (-1 == (io[0] = open(*(temp+1), O_RDONLY))){
+				perror("Error opening file.");
+				exit(EXIT_FAILURE);
+			}
+			//so execvp doesn't use extra args
+			temp = NULL;
+			
+		} else if (strcmp(">", *temp) == 0){
+			if (-1 == (io[1] = open(*(temp+1), O_WRONLY | O_CREAT))){
+				perror("Error opening file.");
+				exit(EXIT_FAILURE);
+			} else {
+				fchmod(io[1], S_IRUSR | S_IWUSR | S_IXUSR);
+			}
+			//so execvp doesn't use extra args
+			temp = NULL;	
+		}
+		temp++;
+	}
 	
 	pid = fork();
 	
@@ -50,31 +84,7 @@ int executor(char** pline){
 		exit(EXIT_FAILURE);
 	} else if (pid == 0){
 		//child process!
-		
-		//this is also where we handle input/output redirection!
-		char** temp = pline;
-		while (NULL != *temp){
-			if (strcmp("<", *temp) == 0){
-				if (NULL != *(temp+1)){
-					//we need to use temp+1 as the new input
-					//TODO
-				} else {
-					perror("No input file.");
-					exit(EXIT_FAILURE);
-				}
-				
-			} else if (strcmp(">", *temp) == 0){
-				if (NULL != *(temp+1)){
-					//we need to use temp+1 as the new output
-					//TODO
-				} else {
-					perror("No output file.");
-					exit(EXIT_FAILURE);
-				}
-				
-			}
-			temp++;
-		}
+	
 		
 		if (execvp(pline[0], pline) == -1){
 			perror("Problem with child process.");
@@ -91,15 +101,18 @@ int executor(char** pline){
 
 
 /*@brief handles signals*/
-/*
-void sig_handler(int sig) {
-    signal(sig, sig_handler);
-    switch (sig) {
+
+void sig_handler(int sigind) {
+    signal(sigind, sig_handler);
+    switch (sigind) {
 		case SIGINT:
-	    	;
+			if (-1 == pid){
+				return;
+			}
+			kill(pid, SIGINT);
     }
 }
-*/
+
 
 
 /*@brief main loop
@@ -115,12 +128,12 @@ void main_loop(){
 	
 	char* home;
 	
-	//install signal handler
-	signal(SIGINT, sig_handler);
-	
-	
+	pid = -1;
 	//read line of input, do stuff!
 	while (fgets(line, line_len, stdin) != NULL){
+		
+		//we need to reap children here
+		//TODO
 		
 		//parse the input line into an array
 		parse(line, pline);
