@@ -39,15 +39,44 @@ void parse(char *line, char** pline){
 *@param line is the input vector
 *@return 1 on success, 0 on failure
 */
-int executor(char** line){
+int executor(char** pline){
 	pid_t pid, wpid;
 	int child;
 	
 	pid = fork();
 	
-	if (pid == 0){
+	if (pid < 0){
+		perror("Problem with child process.");
+		exit(EXIT_FAILURE);
+	} else if (pid == 0){
 		//child process!
-		if (execvp(line[0], line) == -1){
+		
+		//this is also where we handle input/output redirection!
+		char** temp = pline;
+		while (NULL != *temp){
+			if (strcmp("<", *temp) == 0){
+				if (NULL != *(temp+1)){
+					//we need to use temp+1 as the new input
+					//TODO
+				} else {
+					perror("No input file.");
+					exit(EXIT_FAILURE);
+				}
+				
+			} else if (strcmp(">", *temp) == 0){
+				if (NULL != *(temp+1)){
+					//we need to use temp+1 as the new output
+					//TODO
+				} else {
+					perror("No output file.");
+					exit(EXIT_FAILURE);
+				}
+				
+			}
+			temp++;
+		}
+		
+		if (execvp(pline[0], pline) == -1){
 			perror("Problem with child process.");
 			exit(EXIT_FAILURE);
 		}
@@ -65,7 +94,7 @@ void sig_handler(int sig) {
     signal(sig, sig_handler);
     switch (sig) {
 		case SIGINT:
-	    	printf("Got a signal, quit sub-processes.");
+	    	;
     }
 }
 
@@ -82,11 +111,11 @@ void main_loop(){
 	
 	char* home;
 	
+	//install signal handler
+	signal(SIGINT, sig_handler);
+	
 	//read line of input, do stuff!
 	while (fgets(line, line_len, stdin) != NULL){
-		
-		//check signals
-		signal(SIGINT, sig_handler);
 		
 		//parse the input line into an array
 		parse(line, pline);
@@ -121,7 +150,7 @@ void main_loop(){
 	}
 	
 	//Things to free: line, pline (char**), FINISH THIS SHIT
-	free(line);
+	//free(line);
 	
 }
 
@@ -131,6 +160,7 @@ void main_loop(){
 *@return success or not
 */
 int main(int argc, char **argv){
+	
 	//loop function
 	main_loop();
 }
