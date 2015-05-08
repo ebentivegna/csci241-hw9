@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS= -Wall -Wextra -std=c99 -pedantic -O0 -g
-TARGETS = master
+TARGETS = master test
 
 .PHONY = all clean
 

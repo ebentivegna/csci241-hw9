@@ -12,7 +12,7 @@ Lab09
 #define LINE_LEN 1024
 #define MAX_WORDS 100
 #define COMMAND_SEGS 10
-#define DELIMS " \t\r\n"
+#define DELIMS " \t\n"
 
 //functions
 //runs the main loop
@@ -21,5 +21,6 @@ void main_loop();
 void parse(char *line,char** pline);
 //run simple child processes
 int executor(char** line);
-
+//handles signals
+void sig_handler(int sig);
 #endif //MAIN_H

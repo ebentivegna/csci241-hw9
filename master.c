@@ -5,6 +5,7 @@ Lab09
 4 May 2015
 */
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,6 +35,10 @@ void parse(char *line, char** pline){
 	free(token);
 }
 
+/*@brief fork and create child process
+*@param line is the input vector
+*@return 1 on success, 0 on failure
+*/
 int executor(char** line){
 	pid_t pid, wpid;
 	int child;
@@ -55,6 +60,15 @@ int executor(char** line){
 	return 1;
 }
 
+/*@brief handles signals*/
+void sig_handler(int sig) {
+    signal(sig, sig_handler);
+    switch (sig) {
+		case SIGINT:
+	    	printf("Got a signal, quit sub-processes.");
+    }
+}
+
 /*@brief main loop
 */
 void main_loop(){
@@ -64,7 +78,6 @@ void main_loop(){
 	char** pline;
 	
 	line = calloc(line_len,sizeof(char));
-	*line = (char) NULL;
 	pline = calloc(max_words, sizeof(char*));
 	
 	char* home;
@@ -72,39 +85,44 @@ void main_loop(){
 	//read line of input, do stuff!
 	while (fgets(line, line_len, stdin) != NULL){
 		
+		//check signals
+		signal(SIGINT, sig_handler);
+		
 		//parse the input line into an array
 		parse(line, pline);
 		
 		//implement built in commands
-		if (strcmp("exit", *pline)==0){
+		if (0==strcmp("exit", *pline)){
 			printf("Exiting.");
 			break;
-		} else if (strcmp("myinfo", *pline)==0){
+		} else if (0==strcmp("myinfo", *pline)){
 			printf("My PID is %d and my PPID is %d\n", getpid(), getppid());
-		} else if (strcmp("cd", *pline) == 0){
-			if ( *(pline+1) == NULL){
-				//change working directory to $HOME if there are no other args
+		} else if (0==strcmp("cd", *pline)){
+			if (NULL == *(pline+1)){ //change working directory to $HOME 
 				home = getenv("HOME");
-				chdir(home);
-			} else {
-				//change working directory to specified directory if there is another arg
-				home = getenv("PWD");
+				printf("got home as %s", home);
+				if (-1 == chdir(home)){
+					perror("This directory doesn't exist.");
+					exit(EXIT_FAILURE);
+				}
+			} else { //change working directory to specified directory
+				getcwd(home, LINE_LEN);
 				strcat(home, "/");
 				strcat(home, *(pline+1));
-				chdir(home);
+				if (-1 == chdir(home)){
+					perror("This directory doesn't exist.");
+					exit(EXIT_FAILURE);
+				}
 			}
-		} else {
-			//execute simple system commands
+		} else if (NULL != *(pline)){ //execute simple system commands
 			executor(pline);
 		}
 		
-		
-		
 	}
 	
-	//Things to free: line, pline (char**), 
+	//Things to free: line, pline (char**), FINISH THIS SHIT
 	free(line);
-	free(home);
+	
 }
 
 /*@brief main function
