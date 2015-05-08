@@ -89,7 +89,9 @@ int executor(char** pline){
 	return 1;
 }
 
+
 /*@brief handles signals*/
+/*
 void sig_handler(int sig) {
     signal(sig, sig_handler);
     switch (sig) {
@@ -97,6 +99,8 @@ void sig_handler(int sig) {
 	    	;
     }
 }
+*/
+
 
 /*@brief main loop
 */
@@ -113,6 +117,7 @@ void main_loop(){
 	
 	//install signal handler
 	signal(SIGINT, sig_handler);
+	
 	
 	//read line of input, do stuff!
 	while (fgets(line, line_len, stdin) != NULL){
