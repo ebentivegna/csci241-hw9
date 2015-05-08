@@ -1,4 +1,4 @@
-CC = gcc
+CC = gccx
 CFLAGS= -Wall -Wextra -std=c99 -pedantic -O0 -g
 TARGETS = master test
 

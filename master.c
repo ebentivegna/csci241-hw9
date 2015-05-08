@@ -57,12 +57,17 @@ int executor(char** pline){
 	while (NULL != *temp){
 		if (strcmp("<", *temp) == 0){
 			
-			if (-1 == (io[0] = open(*(temp+1), O_RDONLY))){
+			if (-1 != open(*(temp+1), O_RDONLY)){
+			    
+			    io[0] = open(*(temp+1));
+
+
+			} else {
 				perror("Error opening file.");
 				exit(EXIT_FAILURE);
 			}
 			//so execvp doesn't use extra args
-			temp = NULL;
+			*temp = NULL;
 			
 		} else if (strcmp(">", *temp) == 0){
 			if (-1 == (io[1] = open(*(temp+1), O_WRONLY | O_CREAT))){
@@ -103,7 +108,7 @@ int executor(char** pline){
 /*@brief handles signals*/
 
 void sig_handler(int sigind) {
-	/*
+	
     signal(sigind, sig_handler);
 	
     switch (sigind) {
@@ -113,7 +118,7 @@ void sig_handler(int sigind) {
 			}
 			//kill(pid, SIGINT);
     }
-	*/
+	
 	return;
 }
 
@@ -134,41 +139,45 @@ void main_loop(){
 	
 	pid = -1;
 	//read line of input, do stuff!
-	while (fgets(line, line_len, stdin) != NULL){
+	
+	 while(1) {
 		
-		signal(SIGINT, sig_handler);
-		//we need to reap children here
-		//TODO
-		
-		//parse the input line into an array
-		parse(line, pline);
-		
-		//implement built in commands
-		if (0==strcmp("exit", *pline)){
-			printf("Exiting.");
-			break;
-		} else if (0==strcmp("myinfo", *pline)){
-			printf("My PID is %d and my PPID is %d\n", getpid(), getppid());
-		} else if (0==strcmp("cd", *pline)){
-			if (NULL == *(pline+1)){ //change working directory to $HOME 
-				home = getenv("HOME");
-				printf("got home as %s", home);
-				if (-1 == chdir(home)){
-					perror("This directory doesn't exist.");
-					exit(EXIT_FAILURE);
-				}
-			} else { //change working directory to specified directory
-				getcwd(home, LINE_LEN);
-				strcat(home, "/");
-				strcat(home, *(pline+1));
-				if (-1 == chdir(home)){
-					perror("This directory doesn't exist.");
-					exit(EXIT_FAILURE);
-				}
-			}
-		} else if (NULL != *(pline)){ //execute simple system commands
-			executor(pline);
-		}
+	    printf("Master > ");	
+	    fgets(line, line_len, stdin);
+	    
+	    signal(SIGINT, sig_handler);
+	    //we need to reap children here
+	    //TODO
+	    
+	    //parse the input line into an array
+	    parse(line, pline);
+	    
+	    //implement built in commands
+	    if (0==strcmp("exit", *pline)){
+		    printf("Exiting.");
+		    break;
+	    } else if (0==strcmp("myinfo", *pline)){
+		    printf("My PID is %d and my PPID is %d\n", getpid(), getppid());
+	    } else if (0==strcmp("cd", *pline)){
+		    if (NULL == *(pline+1)){ //change working directory to $HOME 
+			    home = getenv("HOME");
+			    printf("got home as %s", home);
+			    if (-1 == chdir(home)){
+				    perror("This directory doesn't exist.");
+				    exit(EXIT_FAILURE);
+			    }
+		    } else { //change working directory to specified directory
+			    getcwd(home, LINE_LEN);
+			    strcat(home, "/");
+			    strcat(home, *(pline+1));
+			    if (-1 == chdir(home)){
+				    perror("This directory doesn't exist.");
+				    exit(EXIT_FAILURE);
+			    }
+		    }
+	    } else if (NULL != *(pline)){ //execute simple system commands
+		    executor(pline);
+	    }
 		
 	}
 	
