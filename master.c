@@ -103,14 +103,18 @@ int executor(char** pline){
 /*@brief handles signals*/
 
 void sig_handler(int sigind) {
+	/*
     signal(sigind, sig_handler);
+	
     switch (sigind) {
 		case SIGINT:
 			if (-1 == pid){
 				return;
 			}
-			kill(pid, SIGINT);
+			//kill(pid, SIGINT);
     }
+	*/
+	return;
 }
 
 
@@ -132,6 +136,7 @@ void main_loop(){
 	//read line of input, do stuff!
 	while (fgets(line, line_len, stdin) != NULL){
 		
+		signal(SIGINT, sig_handler);
 		//we need to reap children here
 		//TODO
 		
