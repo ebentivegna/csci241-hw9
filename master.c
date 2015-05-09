@@ -129,11 +129,13 @@ int executor(char** pline){
 	if (STDIN_FILENO != io[0]){
 	    close(io[0]);
 	    dup2(tempIO[0], STDIN_FILENO);
+	    printf("STDIN should be normal again");
 	}
 
 	if (STDOUT_FILENO != io[1]){
 	    close(io[1]);
 	    dup2(tempIO[1], STDOUT_FILENO);
+	    printf("STOUT should be normal again.");
 	}
 
 	
@@ -167,7 +169,6 @@ void main_loop(){
 	int max_words = MAX_WORDS;
 	char *line;
 	char** pline;
-	amped = 0;
 
 	line = calloc(line_len,sizeof(char));
 	pline = calloc(max_words, sizeof(char*));
@@ -178,14 +179,20 @@ void main_loop(){
 	//read line of input, do stuff!
 	
 	 while(1) {
-		
+	
+	    //we need to reap children here
+	    if (pid == 0){
+		printf("I'm about to die");
+		kill(pid, SIGKILL);
+	    }
+	    
+	    amped = 0;
+
 	    printf("my shell > ");	
 	    fgets(line, line_len, stdin);
 	    
 	    signal(SIGINT, sig_handler);
-	    //we need to reap children here
-	    //TODO
-	    
+    
 	    //parse the input line into an array
 	    parse(line, pline);
 	    
@@ -198,7 +205,7 @@ void main_loop(){
 
 	    //implement built in commands
 	    if (0==strcmp("exit", *pline)){
-		    printf("Exiting.");
+		    printf("%s\n", "Exiting.");
 		    break;
 	    } else if (0==strcmp("myinfo", *pline)){
 		    printf("My PID is %d and my PPID is %d\n", getpid(), getppid());
