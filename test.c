@@ -3,7 +3,6 @@
 #include <signal.h>
 
  int main() {
-
-         sleep(10);
-		 
-	 }
+     sleep(10);
+     printf("Test is done.");
+ }

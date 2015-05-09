@@ -16,7 +16,7 @@ Lab09
 
 //vars used to send signals
 pid_t pid;
-
+int amped;
 //functions
 //runs the main loop
 void main_loop();
