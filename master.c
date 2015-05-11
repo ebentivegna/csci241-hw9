@@ -36,7 +36,7 @@ void parse(char *line, char** pline){
 	}
 	if (0== strcmp(*(pline+ ind -1),"&")){
 	    amped = 1;
-	    printf("amped");
+	    //printf("amped");
 	    pline[ind - 1] = NULL;
 	}
 	pline[ind] = NULL;
@@ -63,7 +63,7 @@ int executor(char** pline){
 	dup2(STDOUT_FILENO, tempIO[1]);
 
 	
-	//this is also where we handle input/output redirection!
+	//this is where we handle input/output redirection!
 	char** temp = pline;
 	while (NULL != *temp){
 		if (strcmp("<", *temp) == 0){
@@ -113,14 +113,19 @@ int executor(char** pline){
 		exit(EXIT_FAILURE);
 	} else if (pid == 0){
 		//child process!
-	
+		//if pipe: then close fd[0] and change 
 		
 		if (execvp(pline[0], pline) == -1){
 			perror("Problem with child process.");
 			exit(EXIT_FAILURE);
 		}
 	} else {
+
 		//parent process!
+		//
+		//if we're in a pipe, then do stuff
+
+
 		if  (0 == amped){
 		    wpid = waitpid(pid, &child, 0);
 		}
@@ -129,13 +134,13 @@ int executor(char** pline){
 	if (STDIN_FILENO != io[0]){
 	    close(io[0]);
 	    dup2(tempIO[0], STDIN_FILENO);
-	    printf("STDIN should be normal again");
+	    //printf("STDIN should be normal again");
 	}
 
 	if (STDOUT_FILENO != io[1]){
 	    close(io[1]);
 	    dup2(tempIO[1], STDOUT_FILENO);
-	    printf("STOUT should be normal again.");
+	    //printf("STOUT should be normal again.");
 	}
 
 	
@@ -156,7 +161,9 @@ void sig_handler(int sigind) {
 				return;
 			}
 			//kill(pid, SIGINT);
-    }	
+    }
+    while(waitpid((pid_t)(-1), 0, WNOHANG) > 0){}
+
     return;
 }
 
@@ -182,7 +189,7 @@ void main_loop(){
 	
 	    //we need to reap children here
 	    if (pid == 0){
-		printf("I'm about to die");
+		//printf("I'm about to die");
 		kill(pid, SIGKILL);
 	    }
 	    
